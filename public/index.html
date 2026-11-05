@@ -2,469 +2,1127 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Quản lý công việc</title>
-  <style>
-    * { box-sizing: border-box; }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TaskFlow - Task Management</title>
 
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: #f1f5f9;
-      color: #1e293b;
-    }
+<style>
+:root {
+  --primary: #6558e8;
+  --primary-dark: #4f46ce;
+  --bg: #f5f7fc;
+  --white: #ffffff;
+  --text: #1e293b;
+  --muted: #8390a6;
+  --border: #e8ebf3;
+  --green: #10b981;
+  --red: #ef476f;
+}
 
-    .header {
-      background: linear-gradient(120deg, #1d4ed8, #2563eb);
-      color: white;
-      padding: 32px 20px;
-      text-align: center;
-    }
+* {
+  box-sizing: border-box;
+}
 
-    .header h1 { margin: 0 0 10px; }
-    .header p { margin: 0; opacity: 0.9; }
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+}
 
-    .container {
-      max-width: 850px;
-      margin: 28px auto;
-      padding: 0 16px;
-    }
+button, input {
+  font: inherit;
+}
 
-    .card {
-      background: white;
-      border-radius: 14px;
-      padding: 24px;
-      margin-bottom: 20px;
-      box-shadow: 0 4px 16px #0000000a;
-    }
+button {
+  cursor: pointer;
+  border: none;
+}
 
-    .stats {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 12px;
-      margin-bottom: 20px;
-    }
+button:disabled {
+  opacity: .6;
+  cursor: not-allowed;
+}
 
-    .stat {
-      background: white;
-      border-radius: 12px;
-      padding: 20px 8px;
-      text-align: center;
-    }
+button:focus-visible,
+input:focus-visible {
+  outline: 3px solid #aaa2ff;
+  outline-offset: 2px;
+}
 
-    .stat strong {
-      display: block;
-      color: #2563eb;
-      font-size: 28px;
-      margin-bottom: 6px;
-    }
+.app {
+  display: flex;
+  min-height: 100vh;
+}
 
-    .stat span {
-      color: #64748b;
-      font-size: 13px;
-    }
+/* SIDEBAR */
 
-    h2 { margin-top: 0; font-size: 20px; }
+.sidebar {
+  width: 240px;
+  background: white;
+  border-right: 1px solid var(--border);
+  padding: 30px 18px;
+  flex-shrink: 0;
+}
 
-    .add-form {
-      display: flex;
-      gap: 10px;
-    }
+.logo {
+  font-size: 25px;
+  font-weight: 800;
+  color: var(--primary);
+  margin-bottom: 45px;
+  padding-left: 12px;
+}
 
-    input[type="text"] {
-      flex: 1;
-      min-width: 0;
-      padding: 13px;
-      border: 1px solid #cbd5e1;
-      border-radius: 8px;
-      font-size: 15px;
-    }
+.logo span {
+  color: var(--text);
+}
 
-    button {
-      border: none;
-      border-radius: 8px;
-      padding: 10px 15px;
-      font-weight: 600;
-      cursor: pointer;
-    }
+.sidebar-label {
+  font-size: 11px;
+  color: #a0aabd;
+  font-weight: bold;
+  letter-spacing: 1px;
+  margin: 0 0 15px 12px;
+}
 
-    button:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
+.nav-item {
+  display: block;
+  padding: 13px 15px;
+  margin-bottom: 8px;
+  text-decoration: none;
+  color: #69788f;
+  border-radius: 11px;
+  font-weight: 600;
+}
 
-    .btn-add {
-      background: #2563eb;
-      color: white;
-    }
+.nav-item:hover,
+.nav-item.active {
+  background: #f0efff;
+  color: var(--primary);
+}
 
-    .btn-edit {
-      background: #fef3c7;
-      color: #92400e;
-    }
+.sidebar-info {
+  margin-top: 60px;
+  background: #f7f8fc;
+  padding: 17px;
+  border-radius: 13px;
+  font-size: 12px;
+  color: #7c899e;
+  line-height: 1.8;
+}
 
-    .btn-delete {
-      background: #fee2e2;
-      color: #b91c1c;
-    }
+.sidebar-info strong {
+  color: var(--text);
+}
 
-    .filters {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      margin-bottom: 18px;
-    }
+/* MAIN */
 
-    .filter-btn {
-      background: #e2e8f0;
-      color: #475569;
-    }
+.main {
+  flex: 1;
+  min-width: 0;
+  max-width: 1500px;
+  margin: auto;
+  padding: 35px 45px;
+}
 
-    .filter-btn.active {
-      background: #2563eb;
-      color: white;
-    }
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 25px;
+}
 
-    .task {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 15px 0;
-      border-bottom: 1px solid #e2e8f0;
-    }
+.topbar small {
+  color: #9ca8bc;
+  font-weight: 600;
+}
 
-    .task:last-child { border-bottom: none; }
+.topbar h1 {
+  margin: 5px 0 0;
+  font-size: 25px;
+}
 
-    .task input[type="checkbox"] {
-      width: 19px;
-      height: 19px;
-      cursor: pointer;
-      accent-color: #16a34a;
-    }
+.date {
+  padding: 12px 15px;
+  border: 1px solid var(--border);
+  background: white;
+  border-radius: 10px;
+  color: #6d7890;
+  font-size: 13px;
+}
 
-    .task-title {
-      flex: 1;
-      overflow-wrap: anywhere;
-    }
+/* HERO */
 
-    .task.completed .task-title {
-      text-decoration: line-through;
-      color: #94a3b8;
-    }
+.hero {
+  background: linear-gradient(115deg, #30346c, #6558e8);
+  color: white;
+  border-radius: 22px;
+  padding: 36px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 22px;
+  overflow: hidden;
+}
 
-    .actions {
-      display: flex;
-      gap: 6px;
-    }
+.hero-label {
+  color: #d2cfff;
+  font-size: 12px;
+  letter-spacing: 1px;
+  font-weight: 700;
+}
 
-    .empty {
-      padding: 24px;
-      text-align: center;
-      color: #64748b;
-    }
+.hero h2 {
+  font-size: 29px;
+  margin: 12px 0;
+}
 
-    .message {
-      min-height: 22px;
-      margin-top: 10px;
-      font-size: 14px;
-    }
+.hero p {
+  color: #e6e4ff;
+  font-size: 14px;
+  max-width: 490px;
+  line-height: 1.7;
+}
 
-    .error { color: #dc2626; }
-    .success { color: #16a34a; }
+.hero-progress {
+  margin-top: 22px;
+  display: inline-block;
+  background: #ffffff20;
+  padding: 8px 14px;
+  border-radius: 30px;
+  font-size: 13px;
+}
 
-    .footer {
-      text-align: center;
-      padding: 24px;
-      color: #64748b;
-      font-size: 13px;
-    }
+.progress-ring {
+  width: 140px;
+  height: 140px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  background: conic-gradient(#9ef2cf 0%, #ffffff35 0%);
+  display: grid;
+  place-items: center;
+}
 
-    @media (max-width: 600px) {
-      .add-form { flex-direction: column; }
-      .task { flex-wrap: wrap; }
-      .actions { margin-left: auto; }
-      .card { padding: 18px; }
-    }
-  </style>
+.ring-inner {
+  width: 112px;
+  height: 112px;
+  background: #4b49a8;
+  border-radius: 50%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.ring-inner strong {
+  font-size: 30px;
+}
+
+.ring-inner small {
+  color: #e2dfff;
+  font-size: 11px;
+}
+
+/* COMMON */
+
+.section-title {
+  font-size: 19px;
+  font-weight: 750;
+  margin: 30px 0 15px;
+}
+
+.card {
+  background: white;
+  border: 1px solid var(--border);
+  border-radius: 17px;
+  box-shadow: 0 10px 35px #202b5708;
+}
+
+/* STATISTICS */
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 17px;
+}
+
+.stat {
+  padding: 24px;
+  display: flex;
+  align-items: center;
+  gap: 17px;
+}
+
+.stat-icon {
+  width: 52px;
+  height: 52px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  background: #efedff;
+  color: var(--primary);
+  font-size: 23px;
+}
+
+.stat-icon.green {
+  background: #e7faf2;
+  color: var(--green);
+}
+
+.stat-icon.orange {
+  background: #fff3e5;
+  color: #e9a047;
+}
+
+.stat small {
+  display: block;
+  color: var(--muted);
+}
+
+.stat strong {
+  display: block;
+  font-size: 29px;
+  margin-top: 3px;
+}
+
+/* ADD TASK */
+
+.add-card {
+  padding: 27px;
+}
+
+.add-card h3 {
+  margin: 0 0 7px;
+}
+
+.description {
+  color: var(--muted);
+  font-size: 13px;
+  margin: 0 0 19px;
+}
+
+.add-form {
+  display: flex;
+  gap: 12px;
+}
+
+.task-input {
+  flex: 1;
+  min-width: 0;
+  padding: 14px 16px;
+  background: #fcfdff;
+  border: 1px solid #dce2ee;
+  border-radius: 10px;
+  font-size: 14px;
+}
+
+.btn-primary {
+  background: var(--primary);
+  color: white;
+  padding: 13px 22px;
+  border-radius: 10px;
+  font-weight: bold;
+}
+
+.btn-primary:hover {
+  background: var(--primary-dark);
+}
+
+/* TASK LIST */
+
+.task-card {
+  overflow: hidden;
+}
+
+.task-header {
+  padding: 24px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.filters {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+}
+
+.filter {
+  background: #f1f3f9;
+  color: #79869b;
+  padding: 10px 14px;
+  border-radius: 9px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.filter.active {
+  color: white;
+  background: var(--primary);
+}
+
+.search {
+  padding: 10px 13px;
+  border-radius: 10px;
+  border: 1px solid #dfe4ee;
+  min-width: 190px;
+}
+
+.task {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 19px 25px;
+  border-top: 1px solid #eef0f6;
+}
+
+.task:hover {
+  background: #fcfcff;
+}
+
+.task-check {
+  width: 20px;
+  height: 20px;
+  accent-color: var(--green);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.task-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-name {
+  display: block;
+  font-weight: 650;
+  overflow-wrap: anywhere;
+}
+
+.task-date {
+  font-size: 11px;
+  color: #a0abba;
+  margin-top: 4px;
+}
+
+.task.done .task-name {
+  text-decoration: line-through;
+  color: #a0aabb;
+}
+
+.status {
+  font-size: 11px;
+  padding: 7px 11px;
+  border-radius: 30px;
+  background: #fff5e6;
+  color: #c08a39;
+  white-space: nowrap;
+}
+
+.status.done {
+  background: #e6f9f1;
+  color: #0b9d75;
+}
+
+.actions {
+  display: flex;
+  gap: 7px;
+}
+
+.btn-edit,
+.btn-delete {
+  padding: 9px 12px;
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: bold;
+}
+
+.btn-edit {
+  background: #f0efff;
+  color: var(--primary);
+}
+
+.btn-delete {
+  background: #fff0f2;
+  color: var(--red);
+}
+
+.empty {
+  text-align: center;
+  padding: 45px 20px;
+  color: var(--muted);
+}
+
+.footer {
+  text-align: center;
+  padding: 30px;
+  font-size: 12px;
+  color: #9aa6b9;
+}
+
+/* EDIT DIALOG */
+
+dialog {
+  width: min(430px, calc(100% - 30px));
+  border: none;
+  border-radius: 18px;
+  padding: 28px;
+  box-shadow: 0 20px 80px #1e293b40;
+}
+
+dialog::backdrop {
+  background: #15213d85;
+}
+
+dialog h3 {
+  margin-top: 0;
+}
+
+dialog input {
+  display: block;
+  width: 100%;
+  padding: 13px;
+  border: 1px solid #dce2ee;
+  border-radius: 9px;
+  margin: 18px 0;
+}
+
+.dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.btn-cancel {
+  background: #eef1f7;
+  color: #64748b;
+  padding: 12px 18px;
+  border-radius: 10px;
+}
+
+/* RESPONSIVE */
+
+@media (max-width: 1000px) {
+  .sidebar {
+    display: none;
+  }
+
+  .main {
+    padding: 25px 20px;
+  }
+}
+
+@media (max-width: 650px) {
+  .hero {
+    padding: 24px;
+  }
+
+  .hero h2 {
+    font-size: 22px;
+  }
+
+  .progress-ring {
+    width: 95px;
+    height: 95px;
+  }
+
+  .ring-inner {
+    width: 75px;
+    height: 75px;
+  }
+
+  .ring-inner strong {
+    font-size: 22px;
+  }
+
+  .stats {
+    gap: 8px;
+  }
+
+  .stat {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 14px;
+  }
+
+  .stat strong {
+    font-size: 23px;
+  }
+
+  .add-form {
+    flex-direction: column;
+  }
+
+  .task {
+    flex-wrap: wrap;
+  }
+
+  .status {
+    margin-left: 35px;
+  }
+
+  .actions {
+    margin-left: auto;
+  }
+
+  .topbar h1 {
+    font-size: 20px;
+  }
+}
+</style>
 </head>
 
 <body>
-  <header class="header">
-    <h1>Task Management</h1>
-    <p>Quản lý công việc cá nhân hiệu quả</p>
-  </header>
 
-  <main class="container">
+<div class="app">
 
-    <section class="stats">
-      <div class="stat">
-        <strong id="total">0</strong>
-        <span>Tổng công việc</span>
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="logo">✓ Task<span>Flow</span>.</div>
+
+    <p class="sidebar-label">MENU</p>
+
+    <a href="#overview" class="nav-item active">
+      ▦ &nbsp; Tổng quan
+    </a>
+
+    <a href="#tasks" class="nav-item">
+      ☑ &nbsp; Công việc
+    </a>
+
+    <div class="sidebar-info">
+      <strong>Task Management Project</strong>
+      <div>Node.js + Express</div>
+      <div>PostgreSQL + Render</div>
+      <div id="connectionStatus">Đang kiểm tra kết nối...</div>
+    </div>
+  </aside>
+
+  <!-- MAIN CONTENT -->
+  <main class="main" id="overview">
+
+    <div class="topbar">
+      <div>
+        <small>WORKSPACE / DASHBOARD</small>
+        <h1>Không gian làm việc của bạn ✨</h1>
       </div>
 
-      <div class="stat">
-        <strong id="completed">0</strong>
-        <span>Đã hoàn thành</span>
+      <div class="date" id="today"></div>
+    </div>
+
+    <!-- HERO -->
+    <section class="hero">
+
+      <div>
+        <div class="hero-label">
+          LÀM VIỆC THÔNG MINH HƠN
+        </div>
+
+        <h2>Mỗi việc nhỏ, một bước tiến lớn.</h2>
+
+        <p>
+          Quản lý kế hoạch mỗi ngày, theo dõi tiến độ
+          và hoàn thành mục tiêu theo cách của bạn.
+        </p>
+
+        <div class="hero-progress" id="progressText">
+          Bạn đã hoàn thành 0/0 công việc
+        </div>
       </div>
 
-      <div class="stat">
-        <strong id="pending">0</strong>
-        <span>Chưa hoàn thành</span>
+      <div class="progress-ring" id="progressRing">
+        <div class="ring-inner">
+          <strong id="progressPercent">0%</strong>
+          <small>Hoàn thành</small>
+        </div>
       </div>
+
     </section>
 
-    <section class="card">
-      <h2>Thêm công việc mới</h2>
+    <!-- STATISTICS -->
+    <h3 class="section-title">Tổng quan công việc</h3>
+
+    <div class="stats">
+
+      <div class="card stat">
+        <div class="stat-icon">▤</div>
+        <div>
+          <small>Tổng công việc</small>
+          <strong id="total">0</strong>
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="stat-icon green">✓</div>
+        <div>
+          <small>Đã hoàn thành</small>
+          <strong id="completed">0</strong>
+        </div>
+      </div>
+
+      <div class="card stat">
+        <div class="stat-icon orange">◷</div>
+        <div>
+          <small>Chưa hoàn thành</small>
+          <strong id="pending">0</strong>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- ADD TASK -->
+    <h3 class="section-title">Tạo kế hoạch mới</h3>
+
+    <section class="card add-card">
+
+      <h3>✍️ Thêm công việc mới</h3>
+
+      <p class="description">
+        Một kế hoạch rõ ràng giúp bạn làm việc hiệu quả hơn.
+      </p>
 
       <form class="add-form" id="taskForm">
+
         <input
+          class="task-input"
           id="taskInput"
           type="text"
           maxlength="255"
-          placeholder="Nhập tên công việc..."
+          placeholder="Nhập tên công việc mới..."
           required
         >
-        <button class="btn-add" type="submit">
+
+        <button
+          class="btn-primary"
+          id="addButton"
+          type="submit"
+        >
           + Thêm công việc
         </button>
-      </form>
 
-      <div id="message" class="message" role="status"></div>
+      </form>
     </section>
 
-    <section class="card">
-      <h2>Danh sách công việc</h2>
+    <!-- TASK LIST -->
+    <h3 class="section-title" id="tasks">
+      Danh sách công việc
+    </h3>
 
-      <div class="filters">
-        <button class="filter-btn active" data-filter="all">
-          Tất cả
-        </button>
-        <button class="filter-btn" data-filter="pending">
-          Chưa hoàn thành
-        </button>
-        <button class="filter-btn" data-filter="completed">
-          Đã hoàn thành
-        </button>
+    <section class="card task-card">
+
+      <div class="task-header">
+
+        <div class="filters">
+          <button
+            class="filter active"
+            data-filter="all"
+          >
+            Tất cả
+          </button>
+
+          <button
+            class="filter"
+            data-filter="pending"
+          >
+            Chưa hoàn thành
+          </button>
+
+          <button
+            class="filter"
+            data-filter="completed"
+          >
+            Đã hoàn thành
+          </button>
+        </div>
+
+        <input
+          class="search"
+          id="searchInput"
+          type="search"
+          placeholder="🔍 Tìm công việc..."
+        >
+
       </div>
 
-      <div id="taskList"></div>
+      <div id="taskList">
+        <div class="empty">Đang tải công việc...</div>
+      </div>
+
     </section>
 
+    <footer class="footer">
+      TaskFlow © 2026 |
+      Node.js + PostgreSQL + Render
+    </footer>
+
   </main>
+</div>
 
-  <footer class="footer">
-    Task Management | Node.js + PostgreSQL + Render
-  </footer>
+<!-- EDIT DIALOG -->
+<dialog id="editDialog">
 
-  <script>
-    let tasks = [];
-    let currentFilter = 'all';
+  <form id="editForm">
+    <h3>✏️ Chỉnh sửa công việc</h3>
+    <p>Nhập tên mới cho công việc của bạn.</p>
 
-    const taskList = document.getElementById('taskList');
-    const message = document.getElementById('message');
+    <input
+      type="text"
+      id="editInput"
+      maxlength="255"
+      required
+    >
 
-    function showMessage(text, isError = false) {
-      message.textContent = text;
-      message.className =
-        'message ' + (isError ? 'error' : 'success');
+    <div class="dialog-actions">
+
+      <button
+        type="button"
+        class="btn-cancel"
+        id="cancelEdit"
+      >
+        Hủy
+      </button>
+
+      <button
+        type="submit"
+        class="btn-primary"
+      >
+        Lưu thay đổi
+      </button>
+
+    </div>
+  </form>
+
+</dialog>
+
+<script>
+// ===================================
+// TASK MANAGEMENT - JAVASCRIPT
+// ===================================
+
+const API = '/api/tasks';
+
+let tasks = [];
+let currentFilter = 'all';
+let editingId = null;
+
+const get = id => document.getElementById(id);
+
+// Hien thi ngay hien tai
+get('today').textContent =
+  new Date().toLocaleDateString('vi-VN');
+
+// Goi API backend
+async function apiRequest(url, options = {}) {
+  const response = await fetch(url, options);
+
+  const data = await response.json().catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(data.message || 'Yeu cau that bai');
+  }
+
+  return data;
+}
+
+// Tai danh sach cong viec
+async function loadTasks() {
+  try {
+    const data = await apiRequest(API);
+
+    if (!Array.isArray(data)) {
+      throw new Error('Du lieu khong hop le');
     }
 
-    async function apiRequest(url, options = {}) {
-      const response = await fetch(url, options);
-      const data = await response.json();
+    tasks = data;
 
-      if (!response.ok) {
-        throw new Error(data.message || 'Có lỗi xảy ra');
+    get('connectionStatus').textContent =
+      '🟢 PostgreSQL đang kết nối';
+
+    renderTasks();
+
+  } catch (error) {
+    get('connectionStatus').textContent =
+      '🔴 Lỗi kết nối dữ liệu';
+
+    get('taskList').textContent =
+      'Không thể tải công việc. Vui lòng thử lại.';
+
+    alert(error.message);
+  }
+}
+
+// Cap nhat thong ke
+function updateStats() {
+  const total = tasks.length;
+
+  const completed =
+    tasks.filter(task => task.completed).length;
+
+  const pending = total - completed;
+
+  const percent = total
+    ? Math.round(completed / total * 100)
+    : 0;
+
+  get('total').textContent = total;
+  get('completed').textContent = completed;
+  get('pending').textContent = pending;
+
+  get('progressText').textContent =
+    `Bạn đã hoàn thành ${completed}/${total} công việc`;
+
+  get('progressPercent').textContent =
+    percent + '%';
+
+  get('progressRing').style.background =
+    `conic-gradient(
+      #9ef2cf ${percent}%,
+      #ffffff35 ${percent}%
+    )`;
+}
+
+// Hien thi cong viec
+function renderTasks() {
+  updateStats();
+
+  const search =
+    get('searchInput').value.trim().toLowerCase();
+
+  const filtered = tasks.filter(task => {
+    if (
+      currentFilter === 'completed' &&
+      !task.completed
+    ) return false;
+
+    if (
+      currentFilter === 'pending' &&
+      task.completed
+    ) return false;
+
+    return task.title.toLowerCase().includes(search);
+  });
+
+  const list = get('taskList');
+  list.replaceChildren();
+
+  if (filtered.length === 0) {
+    const empty = document.createElement('div');
+    empty.className = 'empty';
+    empty.textContent = 'Chưa có công việc phù hợp.';
+    list.appendChild(empty);
+    return;
+  }
+
+  filtered.forEach(task => {
+    const row = document.createElement('div');
+
+    row.className =
+      'task' + (task.completed ? ' done' : '');
+
+    // Checkbox
+    const checkbox = document.createElement('input');
+    checkbox.type = 'checkbox';
+    checkbox.className = 'task-check';
+    checkbox.checked = !!task.completed;
+    checkbox.setAttribute(
+      'aria-label', 'Đánh dấu hoàn thành ' + task.title
+    );
+
+    checkbox.onchange = () => toggleTask(task.id);
+
+    // Task title
+    const content = document.createElement('div');
+    content.className = 'task-content';
+
+    const title = document.createElement('span');
+    title.className = 'task-name';
+    title.textContent = task.title;
+
+    const date = document.createElement('div');
+    date.className = 'task-date';
+
+    if (task.created_at) {
+      const created = new Date(task.created_at);
+
+      if (!Number.isNaN(created.getTime())) {
+        date.textContent =
+          'Ngày tạo: ' +
+          created.toLocaleDateString('vi-VN');
       }
-
-      return data;
     }
 
-    async function loadTasks() {
-      try {
-        tasks = await apiRequest('/api/tasks');
-        renderTasks();
-      } catch (error) {
-        showMessage(error.message, true);
-        taskList.textContent = 'Không thể tải công việc.';
-      }
-    }
+    content.append(title, date);
 
-    function renderTasks() {
-      const completedCount =
-        tasks.filter(task => task.completed).length;
+    // Status
+    const status = document.createElement('span');
 
-      document.getElementById('total').textContent =
-        tasks.length;
+    status.className =
+      'status' + (task.completed ? ' done' : '');
 
-      document.getElementById('completed').textContent =
-        completedCount;
+    status.textContent = task.completed
+      ? '✓ Hoàn thành'
+      : '○ Đang thực hiện';
 
-      document.getElementById('pending').textContent =
-        tasks.length - completedCount;
+    // Buttons
+    const actions = document.createElement('div');
+    actions.className = 'actions';
 
-      const filteredTasks = tasks.filter(task => {
-        if (currentFilter === 'completed') {
-          return task.completed;
-        }
-        if (currentFilter === 'pending') {
-          return !task.completed;
-        }
-        return true;
-      });
+    const edit = document.createElement('button');
+    edit.className = 'btn-edit';
+    edit.textContent = '✏ Sửa';
 
-      taskList.replaceChildren();
+    edit.onclick = () => openEdit(task);
 
-      if (filteredTasks.length === 0) {
-        const empty = document.createElement('p');
-        empty.className = 'empty';
-        empty.textContent = 'Chưa có công việc nào.';
-        taskList.appendChild(empty);
-        return;
-      }
+    const del = document.createElement('button');
+    del.className = 'btn-delete';
+    del.textContent = '🗑 Xóa';
 
-      filteredTasks.forEach(task => {
-        const row = document.createElement('div');
-        row.className =
-          'task' + (task.completed ? ' completed' : '');
+    del.onclick = () => deleteTask(task.id);
 
-        const checkbox = document.createElement('input');
-        checkbox.type = 'checkbox';
-        checkbox.checked = task.completed;
-        checkbox.setAttribute(
-          'aria-label', 'Đánh dấu hoàn thành'
-        );
-        checkbox.addEventListener('change', () => {
-          toggleTask(task.id);
+    actions.append(edit, del);
+
+    row.append(checkbox, content, status, actions);
+    list.appendChild(row);
+  });
+}
+
+// Them cong viec
+get('taskForm').addEventListener('submit', async event => {
+  event.preventDefault();
+
+  const input = get('taskInput');
+  const title = input.value.trim();
+
+  if (!title) return;
+
+  get('addButton').disabled = true;
+
+  try {
+    await apiRequest(API, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ title })
+    });
+
+    input.value = '';
+
+    await loadTasks();
+
+  } catch (error) {
+    alert(error.message);
+
+  } finally {
+    get('addButton').disabled = false;
+  }
+});
+
+// Danh dau hoan thanh
+async function toggleTask(id) {
+  try {
+    await apiRequest(`${API}/${id}/complete`, {
+      method: 'PATCH'
+    });
+
+    await loadTasks();
+
+  } catch (error) {
+    alert(error.message);
+    await loadTasks();
+  }
+}
+
+// Mo hop thoai chinh sua
+function openEdit(task) {
+  editingId = task.id;
+
+  get('editInput').value = task.title;
+  get('editDialog').showModal();
+}
+
+// Luu chinh sua
+get('editForm').addEventListener('submit', async event => {
+  event.preventDefault();
+
+  const title = get('editInput').value.trim();
+
+  if (!title || editingId === null) return;
+
+  try {
+    await apiRequest(`${API}/${editingId}`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ title })
+    });
+
+    get('editDialog').close();
+
+    await loadTasks();
+
+  } catch (error) {
+    alert(error.message);
+  }
+});
+
+get('cancelEdit').onclick = () => {
+  get('editDialog').close();
+};
+
+get('editDialog').addEventListener('close', () => {
+  editingId = null;
+});
+
+// Xoa cong viec
+async function deleteTask(id) {
+  if (!confirm('Bạn chắc chắn muốn xóa công việc?')) {
+    return;
+  }
+
+  try {
+    await apiRequest(`${API}/${id}`, {
+      method: 'DELETE'
+    });
+
+    await loadTasks();
+
+  } catch (error) {
+    alert(error.message);
+  }
+}
+
+// Loc cong viec
+document.querySelectorAll('[data-filter]')
+  .forEach(button => {
+    button.addEventListener('click', () => {
+      currentFilter = button.dataset.filter;
+
+      document.querySelectorAll('[data-filter]')
+        .forEach(btn => {
+          btn.classList.toggle(
+            'active',
+            btn === button
+          );
         });
 
-        const title = document.createElement('span');
-        title.className = 'task-title';
-        title.textContent = task.title;
+      renderTasks();
+    });
+  });
 
-        const actions = document.createElement('div');
-        actions.className = 'actions';
+// Tim kiem
+get('searchInput').addEventListener(
+  'input',
+  renderTasks
+);
 
-        const editBtn = document.createElement('button');
-        editBtn.className = 'btn-edit';
-        editBtn.textContent = 'Sửa';
-        editBtn.onclick = () => editTask(task);
+// Khoi dong
+loadTasks();
 
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'btn-delete';
-        deleteBtn.textContent = 'Xóa';
-        deleteBtn.onclick = () => deleteTask(task.id);
-
-        actions.append(editBtn, deleteBtn);
-        row.append(checkbox, title, actions);
-        taskList.appendChild(row);
-      });
-    }
-
-    document.getElementById('taskForm')
-      .addEventListener('submit', async event => {
-        event.preventDefault();
-
-        const input = document.getElementById('taskInput');
-        const title = input.value.trim();
-
-        if (!title) return;
-
-        try {
-          await apiRequest('/api/tasks', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ title })
-          });
-
-          input.value = '';
-          showMessage('Đã thêm công việc thành công!');
-          await loadTasks();
-        } catch (error) {
-          showMessage(error.message, true);
-        }
-      });
-
-    async function toggleTask(id) {
-      try {
-        await apiRequest(`/api/tasks/${id}/complete`, {
-          method: 'PATCH'
-        });
-
-        await loadTasks();
-      } catch (error) {
-        showMessage(error.message, true);
-        await loadTasks();
-      }
-    }
-
-    async function editTask(task) {
-      const newTitle = prompt(
-        'Chỉnh sửa tên công việc:',
-        task.title
-      );
-
-      if (newTitle === null) return;
-
-      const title = newTitle.trim();
-
-      if (!title || title.length > 255) {
-        showMessage(
-          'Tên công việc phải từ 1 đến 255 ký tự.',
-          true
-        );
-        return;
-      }
-
-      try {
-        await apiRequest(`/api/tasks/${task.id}`, {
-          method: 'PUT',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({ title })
-        });
-
-        showMessage('Đã cập nhật công việc!');
-        await loadTasks();
-      } catch (error) {
-        showMessage(error.message, true);
-      }
-    }
-
-    async function deleteTask(id) {
-      if (!confirm('Bạn có chắc muốn xóa công việc?')) {
-        return;
-      }
-
-      try {
-        await apiRequest(`/api/tasks/${id}`, {
-          method: 'DELETE'
-        });
-
-        showMessage('Đã xóa công việc!');
-        await loadTasks();
-      } catch (error) {
-        showMessage(error.message, true);
-      }
-    }
-
-    document.querySelectorAll('.filter-btn')
-      .forEach(button => {
-        button.addEventListener('click', () => {
-          document.querySelectorAll('.filter-btn')
-            .forEach(btn => btn.classList.remove('active'));
-
-          button.classList.add('active');
-          currentFilter = button.dataset.filter;
-          renderTasks();
-        });
-      });
-
-    loadTasks();
-  </script>
+</script>
 </body>
 </html>
